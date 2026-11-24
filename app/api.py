@@ -4,7 +4,7 @@ from app.business import DomainIssue
 from app.evidence.render import artifact
 from app.inputs import read_input
 from app.modules.pipeline import run
-from app.review.service import execute, review
+from app.review.service import execute, load, review
 
 api = Blueprint("api", __name__, url_prefix="/api")
 STAGES = {"intake": 1, "prepare": 2, "calculate": 3, "policy": 4, "balance": 5}
@@ -29,13 +29,13 @@ def runs():
 def batch(run_id):
     store = current_app.extensions["runs"]
     if request.method == "GET":
-        return jsonify(store.load(run_id))
+        return jsonify(load(store, run_id))
     return jsonify(review(store, run_id, request.get_json(silent=True)))
 
 
 @api.get("/runs/<run_id>/evidence")
 def export(run_id):
-    report = current_app.extensions["runs"].load(run_id)
+    report = load(current_app.extensions["runs"], run_id)
     return Response(
         artifact(report),
         mimetype="application/json",

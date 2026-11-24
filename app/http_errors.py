@@ -12,22 +12,34 @@ LABELS = {
     "FILE_REQUIRED": "请选择 CSV 文件",
     "RUN_NOT_FOUND": "批次不存在",
     "REVIEW_FIELDS": "请填写 3 至 200 字复核意见",
-    "STALE_REVIEW": "批次已更新，请刷新",
+    "STALE_REVIEW": "分组已更新，请刷新",
     "RUN_FINALIZED": "批次已签发",
+    "CASE_FINALIZED": "该业务组已签发，不可覆盖",
+    "CASE_NOT_ELIGIBLE": "该业务组暂不符合签发条件",
+    "CASE_UNKNOWN": "业务组不存在",
     "UNRESOLVED_ISSUES": "存在待处理差异",
     "SAMPLE_UNKNOWN": "样例不存在",
     "STAGE_UNKNOWN": "处理阶段不存在",
 }
+
+CONFLICT = {
+    "STALE_REVIEW",
+    "RUN_FINALIZED",
+    "CASE_FINALIZED",
+    "CASE_NOT_ELIGIBLE",
+    "UNRESOLVED_ISSUES",
+}
+NOT_FOUND = {"RUN_NOT_FOUND", "SAMPLE_UNKNOWN", "STAGE_UNKNOWN"}
 
 
 def response(error):
     code = error.code
     status = (
         404
-        if code in {"RUN_NOT_FOUND", "SAMPLE_UNKNOWN", "STAGE_UNKNOWN"}
+        if code in NOT_FOUND
         else (
             409
-            if code in {"STALE_REVIEW", "RUN_FINALIZED", "UNRESOLVED_ISSUES"}
+            if code in CONFLICT
             else 413 if code == "FILE_TOO_LARGE" else 422
         )
     )

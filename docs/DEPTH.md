@@ -11,8 +11,9 @@
 | M3 月桥拆解 | 查看业务计算结果 | `POST /api/stages/calculate` | `app/modules/calculate.py` | `tests/test_calculate.py` |
 | M4 余额平衡 | 查看签收判定 | `POST /api/stages/policy` | `app/modules/policy.py` | `tests/test_policy.py` |
 | M5 运行对账 | 对照输入、采信和隔离行 | `POST /api/stages/balance` | `app/modules/reconcile.py` | `tests/test_reconcile.py` |
-| M6 批次复核 | 执行批次并签发或暂缓 | `POST /api/runs、PATCH /api/runs/<id>` | `app/review/service.py` | `tests/test_review.py` |
-| M7 证据交付 | 下载复核清单 | `GET /api/runs/<id>/evidence` | `app/evidence/render.py` | `tests/test_evidence.py` |
+| M5b 逐组签发 | 生成签发计划、跨组冲突与整批暂缓判定 | `POST /api/stages/balance` | `app/modules/release.py` | `tests/test_group_release.py` |
+| M6 批次复核 | 执行批次并按业务组签发或暂缓 | `POST /api/runs、PATCH /api/runs/<id>` | `app/review/service.py`、`app/review/store.py` | `tests/test_review.py`、`tests/test_concurrency.py` |
+| M7 证据交付 | 下载逐组复核清单 | `GET /api/runs/<id>/evidence` | `app/evidence/render.py` | `tests/test_evidence.py` |
 
 ## 输入陷阱
 
@@ -29,6 +30,10 @@
 | TRAP-16 | 引号未闭合时拒收文件 | `app/intake/reader.py` | `tests/test_intake.py::test_unclosed_quote_invalidates_source` |
 | TRAP-18 | 区分空文件、全空白和仅表头 | `app/intake/reader.py` | `tests/test_intake.py::test_empty_states_have_distinct_causes` |
 | TRAP-26 | 拒绝旧版本复核 | `app/review/store.py` | `tests/test_review.py::test_review_optimistic_lock` |
+| TRAP-31 | 同记录键跨组冲突时牵涉组全部暂缓，其他组照常签发 | `app/intake/resolve.py`、`app/modules/release.py` | `tests/test_group_release.py::test_same_record_key_conflicting_across_groups_holds_both_groups` |
+| TRAP-32 | 坏行无法可靠归组时整批暂缓 | `app/intake/service.py`、`app/modules/release.py` | `tests/test_group_release.py::test_ungroupable_bad_row_holds_the_whole_batch` |
+| TRAP-33 | 并发复核不同组都应签成，同组仅一方胜出 | `app/review/store.py` | `tests/test_concurrency.py` |
+| TRAP-34 | 已签组金额与证据不可覆盖 | `app/review/store.py` | `tests/test_review.py::test_signed_group_is_final_and_cannot_be_overwritten` |
 
 ## 领域反例
 

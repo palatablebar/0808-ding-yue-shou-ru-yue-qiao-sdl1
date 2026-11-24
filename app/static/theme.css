@@ -31,7 +31,10 @@ body.columns {margin:0;background:var(--bg);color:var(--ink);font:var(--size)/1.
 .columns table {border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;min-width:360px}
 .columns th,.columns td {text-align:left;height:var(--row);padding:5px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
 .columns th {position:sticky;top:0;background:var(--surface);color:var(--sub)} .columns td:nth-child(n+2):nth-child(-n+4) {text-align:right}
-.columns .badge {color:var(--alert);font-size:.83em;padding:2px 4px;white-space:nowrap} .columns .badge:is([data-result="READY"],[data-result="APPROVED"]) {color:var(--accent)}
+.columns .badge {color:var(--alert);font-size:.83em;padding:2px 4px;white-space:nowrap} .columns .badge:is([data-result="READY"],[data-result="APPROVED"],[data-result="ELIGIBLE"],[data-result="SIGNED"]) {color:var(--accent)}
+.columns .badge[data-result="HELD"] {color:var(--alert)}
+.columns .hold-reason {display:block;font-size:.78em;color:var(--alert);white-space:normal}
+.columns .group-pick {font-size:.9em;color:var(--sub)} .columns .group-pick strong {color:var(--ink)}
 .columns #detail {margin:0;max-height:230px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font: .91em/1.5 var(--font-num)}
 .columns #history {list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:var(--gap);margin:0} .columns #history li {display:flex;align-items:center}
 .columns #review {margin-top:14px;max-width:580px} .columns textarea {display:block;width:100%;min-height:54px;cursor:text}

@@ -24,7 +24,7 @@ def evaluate(rows, stage):
     return case
 
 
-def run(data, stage=5):
+def run(data, stage=5, decisions=None):
     intake = inspect(data)
     output = {"intake": {k: v for k, v in intake.items() if k != "rows"}}
     if stage == 1:
@@ -32,5 +32,5 @@ def run(data, stage=5):
     cases = [evaluate(rows, stage) for _, rows in case_groups(intake["rows"])]
     output["cases"] = cases
     if stage >= 5:
-        output["balance"] = balance(intake, cases)
+        output["balance"] = balance(intake, cases, decisions)
     return output

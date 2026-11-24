@@ -3,13 +3,14 @@ from csv import Error
 
 from app.business import DomainIssue
 from app.intake.reader import records
-from app.intake.resolve import partition
+from app.intake.resolve import attributable, partition
 from app.intake.schema import HEADER, record
 
 
 def inspect(data):
     counted = repeated = blanks = 0
     candidates, rejected = [], []
+    ungroupable = []
     try:
         for line, values in records(data):
             counted += 1
@@ -24,12 +25,15 @@ def inspect(data):
             except DomainIssue as error:
                 key = values[0][:36] if values else ""
                 case = values[1][:36] if len(values) > 1 else ""
-                rejected.append(
-                    dict(line=line, record=key, case=case, reason=error.code)
-                )
+                bad_row = dict(line=line, record=key, case=case, reason=error.code)
+                if attributable(values):
+                    rejected.append(bad_row)
+                else:
+                    # 坏行无法可靠归组：整批暂缓，不与单组隔离混在一起。
+                    ungroupable.append(bad_row)
     except Error as error:
         raise DomainIssue("CSV_MALFORMED") from error
-    accepted, conflicts = partition(candidates)
+    accepted, conflicts, cross_conflicts = partition(candidates)
     rejects = sorted(rejected + conflicts, key=lambda row: row["line"])
     return dict(
         input=counted,
@@ -37,6 +41,8 @@ def inspect(data):
         repeated=repeated,
         blank=blanks,
         rejected=len(rejects),
+        ungroupable=ungroupable,
+        cross_conflicts=cross_conflicts,
         reasons=dict(Counter(r["reason"] for r in rejects)),
         isolation=rejects,
         rows=accepted,

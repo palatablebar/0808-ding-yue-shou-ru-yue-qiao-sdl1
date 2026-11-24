@@ -35,9 +35,11 @@
 {% macro archive() %}
 <aside class="panel archive"><h2>批次复核</h2><ul id="history"></ul>
   <form id="review" hidden>
-    <p id="run-status"></p><label for="note">复核意见</label>
+    <p id="run-status"></p>
+    <p id="group-pick" class="group-pick">选中分组：<strong id="group-name">—</strong> <span id="group-state"></span></p>
+    <label for="note">复核意见（随所选分组提交）</label>
     <textarea id="note" name="note" minlength="3" maxlength="200" required></textarea>
-    <div class="review-actions"><button name="decision" value="HELD">暂缓</button><button class="action" name="decision" value="APPROVED">签发</button></div>
+    <div class="review-actions"><button name="decision" value="HELD">暂缓该组</button><button class="action" name="decision" value="APPROVED">签发该组</button></div>
     <a id="evidence">下载复核证据</a>
   </form>
 </aside>

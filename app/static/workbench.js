@@ -24,6 +24,10 @@ function announce(text, failure = false) {
   status.dataset.failure = String(failure);
 }
 
+function planFor(caseId) {
+  return report.balance?.release?.cases?.find(item => item.case === caseId);
+}
+
 function draw() {
   if (!report) return;
   snapshot(report, selected, stage);
@@ -33,8 +37,13 @@ function draw() {
   detail.hidden = !batch;
   if (batch) {
     document.querySelector('#run-status').textContent = `${batch.id.slice(0,10)} · ${batch.status} · r${batch.revision}`;
-    detail.querySelector('[value="APPROVED"]').disabled = !report.balance.releasable || batch.status==='APPROVED';
-    detail.querySelector('[value="HELD"]').disabled = batch.status==='APPROVED';
+    const plan = planFor(selected);
+    document.querySelector('#group-name').textContent = selected || '—';
+    const stateNode = document.querySelector('#group-state');
+    stateNode.textContent = plan ? `${plan.state}${plan.hold_text?.length ? ' · ' + plan.hold_text.join('；') : ''}` : '';
+    const canApprove = plan?.state === 'ELIGIBLE';
+    detail.querySelector('[value="APPROVED"]').disabled = !canApprove;
+    detail.querySelector('[value="HELD"]').disabled = plan?.state === 'SIGNED';
     evidence.href = `/api/runs/${batch.id}/evidence`;
   }
 }
@@ -78,7 +87,7 @@ form.addEventListener('submit', event => {
   perform(async () => {
     const result = await request('/api/runs',{method:'POST',body:source()});
     stage = 'balance'; show(result,true);
-    announce('批次已保存'); await refresh();
+    announce('批次已保存，可按业务组签发'); await refresh();
   });
 });
 const filename = document.querySelector('#file-name');
@@ -97,10 +106,22 @@ document.querySelector('#history').addEventListener('click',event=>{
 });
 detail.addEventListener('submit',event=>{
   event.preventDefault();
+  const plan = planFor(selected);
+  if (!plan) { announce('请先选择业务组', true); return; }
   perform(async()=>{
-    const payload={status:event.submitter.value,revision:batch.revision,note:detail.elements.note.value};
-    const result=await request(`/api/runs/${batch.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    show(result,true); announce(result.status==='APPROVED'?'批次已签发':'批次已暂缓'); await refresh();
+    const plan = planFor(selected);
+    const payload = {
+      decisions: [{
+        case: selected,
+        revision: plan.review?.revision ?? 0,
+        status: event.submitter.value,
+        note: detail.elements.note.value,
+      }],
+    };
+    const result = await request(`/api/runs/${batch.id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    show(result,true);
+    announce(result.report.balance.release.cases.find(g=>g.case===selected).state === 'SIGNED' ? `分组 ${selected} 已签发` : `分组 ${selected} 已暂缓`);
+    await refresh();
   });
 });
 preview(stage);
